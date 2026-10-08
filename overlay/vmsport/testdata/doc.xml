@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE forum [<!ELEMENT forum (topic+)><!ELEMENT topic (#PCDATA)>
+  <!ATTLIST topic id ID #REQUIRED>]>
+<forum><topic id="t1">Welcome</topic><topic id="t2">VMS café</topic></forum>
