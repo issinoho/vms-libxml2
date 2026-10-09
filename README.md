@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/images/banner.svg" alt="libxml2 for OpenVMS: a DECterm window validating a document and running XPath queries with xmllint, then building a program against the kit, with a markup mark" width="100%">
+</p>
+
 # vms-libxml2
 
 [libxml2](https://gitlab.gnome.org/GNOME/libxml2) for OpenVMS x86-64, built natively with
@@ -57,6 +61,12 @@ tools/prepare.sh
 tools/build.sh x86 [ALL|CLEAN]
 tools/test.sh x86
 ```
+
+## Artwork
+
+`docs/images/banner.svg` and `docs/images/icon.svg` were made for this project in the style
+of classic DECwindows and VT terminals, like those of its sibling ports. The markup mark in
+them is our own drawing, not libxml2's logo.
 
 ## Licence
 
