@@ -54,4 +54,32 @@ grep -q "LIBXML_DOTTED_VERSION \"$UPSTREAM_VERSION\"" "$stage/include/libxml/xml
 
 printf 'VERSION=%s\nKIT_VERSION=%s-vms%s\n' "$UPSTREAM_VERSION" "$UPSTREAM_VERSION" \
     "$VMS_PATCH_LEVEL" > "$stage/vmsport/version.env"
+
+# --- PCSI kit inputs (vmsport/kit/MAKE_KIT.COM builds the kit on the node) --
+step "PCSI kit inputs"
+kit=$stage/vmsport/kit
+: "${KIT_PRODUCER:=ISSINOHO}"
+# libxml2 versions have three parts (2.15.4): the third is the PCSI update and
+# our VMS patch level the ECO, as in vms-zlib, so 2.15.4-vms1 is V2.15-4E1.
+IFS=. read -r major minor update _ <<< "$UPSTREAM_VERSION"
+pcsiversion="V$major.$minor-${update:-0}E$VMS_PATCH_LEVEL"
+kitversion="$UPSTREAM_VERSION-vms$VMS_PATCH_LEVEL"
+headers=$(cd "$stage/include/libxml" && ls *.h | tr a-z A-Z |
+          sed 's|^|    file [LIBXML2.INCLUDE.LIBXML]|; s|$| ;|')
+subst() {
+    sed -e "s/@PRODUCER@/$KIT_PRODUCER/g" -e "s/@BASE@/$1/g" \
+        -e "s/@PCSIVERSION@/$pcsiversion/g" -e "s/@VERSION@/$UPSTREAM_VERSION/g" \
+        -e "s/@KITVERSION@/$kitversion/g" -e "s/@ARCH@/$2/g"
+}
+subst X86VMS "" < "$kit/libxml2.pcsi\$desc_template" |
+    awk -v h="$headers" '$0 == "@HEADERS@" { print h; next } { print }' > "$kit/LIBXML2-X86VMS.PCSI\$DESC"
+subst X86VMS "" < "$kit/libxml2.pcsi\$text_template" > "$kit/LIBXML2-X86VMS.PCSI\$TEXT"
+rm -f "$kit/libxml2.pcsi\$desc_template" "$kit/libxml2.pcsi\$text_template"
+subst "" "x86-64" < "$kit/readme.vms" > "$kit/README.VMS"; rm -f "$kit/readme.vms"
+mkdir -p "$kit/doc"
+cp "$stage/Copyright" "$kit/doc/COPYRIGHT."
+cp "$stage/NEWS" "$kit/doc/NEWS."
+cp "$stage/README.md" "$kit/doc/README.MD"
+printf 'KIT_PRODUCER=%s\nPCSI_VERSION=%s\nKIT_VERSION=%s\n' "$KIT_PRODUCER" "$pcsiversion" \
+    "$kitversion" > "$kit/kit.env"
 step "staged $stage"

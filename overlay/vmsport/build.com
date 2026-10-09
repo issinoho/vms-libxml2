@@ -47,7 +47,10 @@ $! clangflags.txt): __GNUC__ (VSI's clang does not define it), 64-bit argv,
 $! shortened names over 31 characters (as VSI C libraries export them), and
 $! vms_lp64.h for the C RTL's 32-bit long interfaces.  -include and -I take
 $! UNIX paths relative to the top of the tree.
-$ cflags = "-std=gnu99 -O2 -names2=shortened -pointer-size=argv64" + -
+$! -fno-builtin-memset/bzero: VSI clang lowers both to OTS$FILL but assumes
+$! memset's return value, which miscompiles "memset(p, 0, n); return p;"
+$! (vms-php PORTING_LOG #17).  libxml2 has no such code; the flags keep it so.
+$ cflags = "-std=gnu99 -O2 -fno-builtin-memset -fno-builtin-bzero -names2=shortened -pointer-size=argv64" + -
     " -D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1" + -
     " -D_LARGEFILE -D_USE_STD_STAT -D_POSIX_EXIT -DHAVE_CONFIG_H" + -
     " -include vmsport/include/vms_lp64.h -I./vmsport -I./include -I."

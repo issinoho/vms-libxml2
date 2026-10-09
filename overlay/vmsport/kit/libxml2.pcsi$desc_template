@@ -1,0 +1,34 @@
+--
+-- PCSI product description for libxml2 on OpenVMS.
+-- Template: tools/prepare.sh substitutes @PRODUCER@, @BASE@ and @PCSIVERSION@
+-- and the @HEADERS@ file lines.
+--
+product @PRODUCER@ @BASE@ LIBXML2 @PCSIVERSION@ full ;
+
+    information RELEASE_NOTES phase after ;
+
+    directory [LIBXML2] ;
+    directory [LIBXML2.BIN] ;
+    directory [LIBXML2.DOC] ;
+    directory [LIBXML2.INCLUDE] ;
+    directory [LIBXML2.INCLUDE.LIBXML] ;
+    directory [LIBXML2.LIB] ;
+
+@HEADERS@
+    file [LIBXML2.LIB]LIBXML2.OLB ;
+    file [LIBXML2.BIN]XMLLINT.EXE ;
+    file [SYS$STARTUP]LIBXML2$STARTUP.COM ;
+    file [LIBXML2.DOC]README.VMS ;
+    file [LIBXML2.DOC]COPYRIGHT. ;
+    file [LIBXML2.DOC]NEWS. ;
+    file [LIBXML2.DOC]README.MD ;
+
+    -- Define LIBXML2$ROOT now and print the post-installation tasks (PCSI
+    -- shows only the title of an information message unless /HELP is given).
+    execute postinstall "@PCSI$DESTINATION:[SYS$STARTUP]LIBXML2$STARTUP.COM INSTALL" interactive ;
+    -- On removal, deassign LIBXML2$ROOT.
+    execute install "CONTINUE" remove "@PCSI$DESTINATION:[SYS$STARTUP]LIBXML2$STARTUP.COM REMOVE" ;
+
+    information POST_INSTALL phase after ;
+
+end product ;

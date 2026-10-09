@@ -1,0 +1,19 @@
+=product @PRODUCER@ @BASE@ LIBXML2 @PCSIVERSION@ full
+1 'PRODUCER
+=prompt @PRODUCER@
+1 'PRODUCT
+=prompt libxml2 @VERSION@ (XML library, clang build) for OpenVMS
+1 'NOTICE
+=prompt libxml2 is distributed under the MIT licence.
+1 RELEASE_NOTES
+=prompt Documentation is in [LIBXML2.DOC]README.VMS under the installation directory.
+1 POST_INSTALL
+=prompt Post-installation tasks for libxml2
+    At system startup: to define LIBXML2$ROOT at every boot, add this line to
+    SYS$MANAGER:SYSTARTUP_VMS.COM:
+    $ @SYS$STARTUP:LIBXML2$STARTUP.COM
+    Building against libxml2 (clang only): compile with
+    -I/libxml2$root/include -names2=shortened and link with
+    LIBXML2$ROOT:[LIB]LIBXML2.OLB/LIBRARY.
+
+PRODUCT REMOVE LIBXML2 removes the product and deassigns LIBXML2$ROOT.

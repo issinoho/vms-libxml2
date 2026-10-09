@@ -14,13 +14,15 @@ XMLWriter). Part of the same family as [MariaDB](https://github.com/issinoho/vms
 |---|---|
 | libxml2 **2.15.4**, library (36 sources) and `xmllint` build with clang | yes |
 | Smoke test: upstream's `testchar`, `testdict`, `testparser`; `xmllint` (DTD validation, XPath, HTML, namespaces, UTF-8 and ISO-8859-1 input, `--format`) | 11/11 |
-
-No PCSI kit yet: the install tree is what other ports link statically.
+| PCSI kit ([v2.15.4-vms1](https://github.com/issinoho/vms-libxml2/releases/tag/v2.15.4-vms1)) | `ISSINOHO-X86VMS-LIBXML2-V0215-4E1-1.PCSI` |
+| Kit install; build a clang program against the installed library; `xmllint` from the kit; remove | clean |
 
 ## What gets built
 
 - **`[.OBJ_X86_64_CLANG]LIBXML2.OLB`**, the library, and `XMLLINT.EXE`, `TESTCHAR.EXE`,
   `TESTDICT.EXE`, `TESTPARSER.EXE`.
+- **A PCSI kit** (`[.KIT_X86_64]`, `tools/kit.sh x86`) that installs the library, headers and
+  `xmllint` under `LIBXML2$ROOT` (`SYS$STARTUP:LIBXML2$STARTUP.COM` defines it).
 - **An install tree** `[.INSTALL_X86_64_CLANG]` with `[.INCLUDE.LIBXML]*.H` and
   `[.LIB]LIBXML2.OLB`. Define the rooted logical name `LIBXML2$ROOT` for it, compile with
   `-I/LIBXML2$ROOT/INCLUDE` and link with `LIBXML2$ROOT:[LIB]LIBXML2.OLB/LIBRARY`.
@@ -28,7 +30,10 @@ No PCSI kit yet: the install tree is what other ports link statically.
 **Why clang only:** VSI C is ILP32 (`long` and pointers 32-bit) and VSI's clang is LP64,
 so objects from the two cannot be mixed. PHP for OpenVMS is a clang build. The compile
 flags are the family's (vms-mariadb, vms-pcre2): `__GNUC__` defined, 64-bit `argv`,
-`-names2=shortened`, and `vms_lp64.h` for the C RTL's 32-bit `long` interfaces.
+`-names2=shortened`, and `vms_lp64.h` for the C RTL's 32-bit `long` interfaces. Also
+`-fno-builtin-memset -fno-builtin-bzero`: VSI clang lowers both to `OTS$FILL` but assumes
+memset's return value, which miscompiles `memset(p, 0, n); return p;` (found porting PHP;
+libxml2 has no such code, the flags keep it so).
 
 **Features:** everything PHP's XML extensions use (tree, SAX1/2, push parser, reader,
 writer, output, HTML, XPath, XPointer, XInclude, C14N, catalog, DTD validation, regexps,

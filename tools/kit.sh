@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# kit.sh <node> - build on <node> (from clean), make the PCSI kit there, fetch it
+# to out/kits/.  Builds first so the kit always matches the pushed tree.
+set -euo pipefail
+
+top=$(cd "$(dirname "$0")/.." && pwd)
+node=${1:?usage: kit.sh <node>}
+. "$top/upstream.conf"
+remote=$(echo "$UPSTREAM_NAME-$UPSTREAM_VERSION" | tr . _)
+REMOTE=$(echo "$remote" | tr a-z A-Z)
+read -r _ _ _ _ _ WORKDIR _ < <(awk -v n="$node" '$1==n' "$top/tools/nodes.conf")
+mkdir -p "$top/out"
+
+{ "$top/tools/build.sh" "$node" CLEAN && "$top/tools/build.sh" "$node" ALL; } > "$top/out/build-$node.log" 2>&1 ||
+    { tail -20 "$top/out/build-$node.log"; echo "kit: build failed" >&2; exit 1; }
+
+job=$top/cache/kit-$node.com
+printf '$ set noon\n$ @%s.%s.VMSPORT.KIT]MAKE_KIT.COM\n' "${WORKDIR%]}" "$REMOTE" > "$job"
+VMS_TIMEOUT=1800 "$top/tools/vms.sh" "$node" run "$job" | tee "$top/out/kit-$node.log"
+kit=$(sed -n 's/^MAKE_KIT: kit .*\]\([^;]*\);.*/\1/p' "$top/out/kit-$node.log" | head -1)
+[ -n "$kit" ] || { echo "kit: no kit produced (see out/kit-$node.log)" >&2; exit 1; }
+mkdir -p "$top/out/kits"
+"$top/tools/vms.sh" "$node" get "$remote/KIT_X86_64/$kit" "$top/out/kits/$kit"
+ls -la "$top/out/kits/$kit"
